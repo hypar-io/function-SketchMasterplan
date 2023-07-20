@@ -1,0 +1,215 @@
+{
+  "$schema": "https://hypar.io/Schemas/Function.json",
+  "id": "8ebdaf4d-ce03-4a9f-92eb-877b73be3377",
+  "name": "Sketch Masterplan",
+  "description": "Create a multi-building masterplan by sketching footprints and setting building heights.",
+  "language": "C#",
+  "model_output": "Masterplan",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "Typical Levels": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "$hyparStyle": "row",
+          "properties": {
+            "Name": {
+              "description": "The name of the level",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "Height": {
+              "description": "The floor-to-floor height of the level",
+              "type": "number",
+              "$hyparUnitType": "length",
+              "multipleOf": 0.1,
+              "default": 3.9624
+            }
+          }
+        },
+        "default": [
+          {
+            "Name": "Ground Floor",
+            "Height": 4.8768
+          },
+          {
+            "Name": "Typical Floor",
+            "Height": 3.9624
+          }
+        ]
+      },
+      "Footprints": {
+        "$hyparDeprecated": true,
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+        }
+      },
+      "Voids": {
+        "$hyparDeprecated": true,
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Vector3.json"
+        }
+      }
+    }
+  },
+  "overrides": {
+    "Masses": {
+      "context": "[*discriminator=Elements.Footprint]",
+      "identity": {
+        "Boundary": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+        }
+      },
+      "behaviors": {
+        "add": {
+          "schema": {
+            "Footprint Shape": {
+              "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+            }
+          }
+        },
+        "remove": true
+      },
+      "schema": {
+        "Footprint Shape": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+        }
+      }
+    },
+    "Massing": {
+      "context": "[*discriminator=Elements.Footprint]",
+      "identity": {
+        "Boundary": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+        }
+      },
+      "schema": {
+        "Mass Name": {
+          "$hyparDeprecated": true,
+          "$hyparOrder": 0,
+          "type": "string"
+        },
+        "Building Name": {
+          "$hyparOrder": 0.5,
+          "type": "string",
+          "default": null
+        },
+        "Number of Levels": {
+          "$hyparOrder": 1,
+          "type": "integer",
+          "minimum": 1
+        },
+        "Starting Level": {
+          "$hyparOrder": 2,
+          "type": "integer",
+          "minimum": 1
+        },
+        "Building Levels": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "$hyparUnitType": "length",
+            "multipleOf": 0.1,
+            "default": 3.9624
+          }
+        }
+      }
+    },
+    "Voids": {
+      "context": "[*discriminator=Elements.FootprintVoid]",
+      "identity": {
+        "Insertion Point": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Vector3.json"
+        }
+      },
+      "schema": {
+        "Starting Level": {
+          "$hyparOrder": 1,
+          "type": "integer",
+          "minimum": 1
+        },
+        "Last Level": {
+          "$hyparOrder": 2,
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "Void Geometry": {
+      "context": "[*discriminator=Elements.FootprintVoid]",
+      "behaviors": {
+        "add": {
+          "schema": {
+            "Boundary": {
+              "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+            }
+          }
+        },
+        "remove": true
+      },
+      "identity": {
+        "Insertion Point": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Vector3.json"
+        }
+      },
+      "schema": {
+        "Boundary": {
+          "$ref": "https://hypar.io/Schemas/Geometry/Polygon.json"
+        }
+      },
+      "verbs": {
+        "add": "Add Void"
+      }
+    }
+  },
+  "messages": {
+    "en": {
+      "overrides": {
+        "Massing": {
+          "name": "Mass Properties"
+        },
+        "Voids": {
+          "name": "Void Properties"
+        }
+      }
+    }
+  },
+  "filters": {
+    "Hide Void Elements": {
+      "context": "[*discriminator!=Elements.FootprintVoid&discriminator!=Elements.LevelVolume]"
+    },
+    "Show Void Elements": {
+      "context": "[*discriminator!=Elements.LevelVolume]",
+      "default": true
+    }
+  },
+  "outputs": [
+    {
+      "description": "The total project area",
+      "name": "Total Project Area",
+      "type": "number",
+      "unit_type": "area"
+    }
+  ],
+  "element_types": [
+    "https://prod-api.hypar.io/schemas/Footprint",
+    "https://prod-api.hypar.io/schemas/Level",
+    "https://prod-api.hypar.io/schemas/LevelPerimeter",
+    "https://prod-api.hypar.io/schemas/LevelVolume",
+    "https://prod-api.hypar.io/schemas/Envelope"
+  ],
+  "repository_url": "https://github.com/hypar-io/function",
+  "last_updated": "0001-01-01T00:00:00"
+}
